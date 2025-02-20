@@ -1,22 +1,26 @@
 // middleware.ts or middleware.js in your project root
 
 import type { NextRequest } from 'next/server';
+
+// Inside middleware.ts (or middleware.js)
+import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
+import { routing } from './libs/i18nNavigation';
 
+const intlMiddleware = createMiddleware(routing);
+
+// Optionally, handle the redirect from `/` to `/en` (or any default locale)
 export function middleware(request: NextRequest) {
-  // Check if the user is authenticated (for example, by checking a cookie or session)
-  const token = request.cookies.get('auth-token'); // This could be a cookie or some other method you use to authenticate
-
-  // If no token found, redirect to the login page
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  const url = new URL(request.url);
+  if (url.pathname === '/') {
+    return NextResponse.redirect(new URL('/en', request.url));
   }
 
-  // If token exists, allow the request to proceed
-  return NextResponse.next();
+  return intlMiddleware(request);
 }
 
-// Define which routes this middleware will run for
 export const config = {
-  matcher: ['/dashboard', '/profile', '/settings'], // Routes that require authentication
+  matcher: [
+    '/((?!_next|monitoring|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+  ], // Match root path as well
 };
